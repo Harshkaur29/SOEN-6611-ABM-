@@ -19,6 +19,7 @@ iBank is a self-service automated banking machine designed for retail banking cu
 - Transaction receipt/confirmation
 
 **21st-Century Characteristics**
+
 SECURITY
 - Secure customer authentication
 - Protected PIN entry
