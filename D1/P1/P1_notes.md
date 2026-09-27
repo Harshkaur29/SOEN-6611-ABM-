@@ -7,8 +7,8 @@
 iBank is a self-service automated banking machine designed for retail banking customers in Canada. It allows authenticated customers to perform common banking transactions independently using a secure and accessible interface.
 
 **Target Users**
-Canadian retail banking customers
-Customers with an eligible bank account and valid authentication credentials
+1. Canadian retail banking customers
+2. Customers with an eligible bank account and valid authentication credentials
 
 **Core Functions**
 - Cash withdrawal
