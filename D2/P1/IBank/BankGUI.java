@@ -13,37 +13,19 @@ public class BankGUI {
     private final JFrame frame;
     private BankCustomer loggedInCustomer;
 
-    /**
-     * Creates the main application window.
-     * Input: the simulated bank backend.
-     * Output: a BankGUI object.
-     * Why: Connects the Swing interface to the backend in one place.
-     */
     public BankGUI(BankBackend bank) {
         this.bank = bank;
-        frame = new JFrame("iBank - Canadian Retail ABM");
+        frame = new JFrame("iBank - Retail ABM");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(520, 520);
+        frame.setSize(560, 620);
         frame.setLocationRelativeTo(null);
     }
 
-    /**
-     * Opens the application at the login screen.
-     * Input: none.
-     * Output: no return value; the window becomes visible.
-     * Why: Gives IBank a single method to start the user interface.
-     */
     public void start() {
         showLoginScreen();
         frame.setVisible(true);
     }
 
-    /**
-     * Displays customer login controls and technician access.
-     * Input: none.
-     * Output: no return value; the login screen is placed in the frame.
-     * Why: Customers authenticate before transactions, while technicians use a separate access path.
-     */
     private void showLoginScreen() {
         JPanel panel = new JPanel(new GridLayout(0, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(30, 45, 30, 45));
@@ -64,19 +46,13 @@ public class BankGUI {
         panel.add(pinField);
         panel.add(loginButton);
         panel.add(technicianButton);
-        panel.add(new JLabel("All monetary amounts are in CAD."));
+        panel.add(new JLabel("Supported currencies: CAD, USD, EUR."));
 
         frame.setContentPane(panel);
         frame.revalidate();
         frame.repaint();
     }
 
-    /**
-     * Authenticates the customer using the values in the login form.
-     * Input: card-number text field and PIN field.
-     * Output: no return value; shows the menu or an error message.
-     * Why: Converts GUI input to a backend login request and handles input errors.
-     */
     private void login(JTextField cardField, JPasswordField pinField) {
         try {
             int cardNumber = Integer.parseInt(cardField.getText().trim());
@@ -90,12 +66,6 @@ public class BankGUI {
         }
     }
 
-    /**
-     * Shows the logged-in customer their linked accounts and transaction options.
-     * Input: none; the authenticated customer is stored in loggedInCustomer.
-     * Output: no return value; displays the banking menu.
-     * Why: Provides direct access to all retail customer use cases.
-     */
     private void showMainScreen() {
         JPanel panel = new JPanel(new GridLayout(0, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(18, 35, 18, 35));
@@ -119,7 +89,7 @@ public class BankGUI {
         logoutButton.addActionListener(event -> logout());
 
         panel.add(welcome);
-        panel.add(new JLabel("Choose the account separately for each transaction."));
+        panel.add(new JLabel("Choose the currency and account for each transaction."));
         panel.add(withdrawButton);
         panel.add(depositButton);
         panel.add(transferButton);
@@ -132,26 +102,25 @@ public class BankGUI {
         frame.repaint();
     }
 
-    /**
-     * Requests a withdrawal amount and asks the backend to dispense banknotes.
-     * Input: amount from the user and the selected Chequing/Savings account.
-     * Output: an on-screen receipt or a helpful error message.
-     * Why: Connects UC-02 to the bank's validation and cash-cassette logic.
-     */
     private void withdrawCash() {
         try {
-            String accountType = askForAccountType("Withdraw cash from which account?");
+            String currency = askForCurrency("Withdraw cash in which currency?");
+            if (currency == null) {
+                return;
+            }
+
+            String accountType = askForAccountType(
+                    "Withdraw cash from which " + currency + " account?", currency);
             if (accountType == null) {
                 return;
             }
 
             Double amount = askForAmount(
-                    "Withdrawal amount from " + accountType + " (CAD):");
+                    "Withdrawal amount from " + currency + " " + accountType + ":");
             if (amount == null) {
                 return;
             }
-            showMessage(bank.withdrawCash(
-                    loggedInCustomer, accountType, amount));
+            showMessage(bank.withdrawCash(loggedInCustomer, accountType, currency, amount));
         } catch (NumberFormatException exception) {
             showError("Enter a valid numeric amount.");
         } catch (BankException exception) {
@@ -159,41 +128,40 @@ public class BankGUI {
         }
     }
 
-    /**
-     * Asks how many bills of each supported denomination are being deposited.
-     * Input: user-entered non-negative counts for each note denomination.
-     * Output: an on-screen deposit receipt or a helpful error message.
-     * Why: Simulates the ABM counting paper currency instead of accepting only a total.
-     */
     private void depositCash() {
-        String accountType = askForAccountType("Deposit cash into which account?");
-        if (accountType == null) {
-            return;
-        }
-
-        int[] denominations = bank.getSupportedDenominations();
-        JTextField[] fields = new JTextField[denominations.length];
-        Object[] form = new Object[denominations.length * 2];
-
-        for (int i = 0; i < denominations.length; i++) {
-            fields[i] = new JTextField("0");
-            form[i * 2] = "Number of $" + denominations[i] + " bills:";
-            form[i * 2 + 1] = fields[i];
-        }
-
-        int choice = JOptionPane.showConfirmDialog(
-                frame, form, "Deposit CAD Bills", JOptionPane.OK_CANCEL_OPTION);
-        if (choice != JOptionPane.OK_OPTION) {
-            return;
-        }
-
         try {
+            String currency = askForCurrency("Deposit cash in which currency?");
+            if (currency == null) {
+                return;
+            }
+
+            String accountType = askForAccountType(
+                    "Deposit cash into which " + currency + " account?", currency);
+            if (accountType == null) {
+                return;
+            }
+
+            int[] denominations = bank.getSupportedDenominations();
+            JTextField[] fields = new JTextField[denominations.length];
+            Object[] form = new Object[denominations.length * 2];
+
+            for (int i = 0; i < denominations.length; i++) {
+                fields[i] = new JTextField("0");
+                form[i * 2] = "Number of $" + denominations[i] + " bills:";
+                form[i * 2 + 1] = fields[i];
+            }
+
+            int choice = JOptionPane.showConfirmDialog(
+                    frame, form, "Deposit " + currency + " Bills", JOptionPane.OK_CANCEL_OPTION);
+            if (choice != JOptionPane.OK_OPTION) {
+                return;
+            }
+
             int[] counts = new int[denominations.length];
             for (int i = 0; i < fields.length; i++) {
                 counts[i] = Integer.parseInt(fields[i].getText().trim());
             }
-            showMessage(bank.depositCash(
-                    loggedInCustomer, accountType, counts));
+            showMessage(bank.depositCash(loggedInCustomer, accountType, currency, counts));
         } catch (NumberFormatException exception) {
             showError("Each bill count must be a whole number.");
         } catch (BankException exception) {
@@ -201,42 +169,35 @@ public class BankGUI {
         }
     }
 
-    /**
-     * Displays a receipt containing the balances of both linked accounts.
-     * Input: none.
-     * Output: an on-screen balance inquiry receipt.
-     * Why: Implements UC-05 without requiring the user to select only one account.
-     */
     private void showBalance() {
         showMessage(bank.balanceInquiry(loggedInCustomer));
     }
 
-    /**
-     * Transfers money between the customer's linked Chequing and Savings accounts.
-     * Input: separately selected source and destination accounts, plus a CAD amount.
-     * Output: a transfer receipt or an error message.
-     * Why: Makes both transfer directions explicit and lets the backend reject
-     * choosing the same account as both source and destination.
-     */
     private void transferFunds() {
         try {
-            String source = askForAccountType("Transfer funds FROM which account?");
+            String currency = askForCurrency("Transfer which currency?");
+            if (currency == null) {
+                return;
+            }
+
+            String source = askForAccountType(
+                    "Transfer funds FROM which " + currency + " account?", currency);
             if (source == null) {
                 return;
             }
 
-            String target = askForAccountType("Transfer funds TO which account?");
+            String target = askForAccountType(
+                    "Transfer funds TO which " + currency + " account?", currency);
             if (target == null) {
                 return;
             }
 
             Double amount = askForAmount(
-                    "Transfer from " + source + " to " + target + " (CAD):");
+                    "Transfer from " + source + " to " + target + " in " + currency + ":");
             if (amount == null) {
                 return;
             }
-            showMessage(bank.transferFunds(
-                    loggedInCustomer, source, target, amount));
+            showMessage(bank.transferFunds(loggedInCustomer, source, target, currency, amount));
         } catch (NumberFormatException exception) {
             showError("Enter a valid numeric amount.");
         } catch (BankException exception) {
@@ -244,12 +205,6 @@ public class BankGUI {
         }
     }
 
-    /**
-     * Collects the old and new PINs and calls the backend to change the PIN.
-     * Input: values entered in two password fields.
-     * Output: a confirmation receipt or an error message.
-     * Why: Implements UC-06 without exposing the stored PIN to the GUI.
-     */
     private void changePin() {
         JPasswordField oldPinField = new JPasswordField();
         JPasswordField newPinField = new JPasswordField();
@@ -274,12 +229,6 @@ public class BankGUI {
         }
     }
 
-    /**
-     * Opens the technician login dialog and validates the technician code.
-     * Input: technician code entered in a password field.
-     * Output: the technician menu or an error dialog.
-     * Why: Restricts the maintenance screen to the simulated technician actor.
-     */
     private void technicianLogin() {
         JPasswordField codeField = new JPasswordField();
         int choice = JOptionPane.showConfirmDialog(
@@ -296,12 +245,6 @@ public class BankGUI {
         }
     }
 
-    /**
-     * Shows diagnostics, replenishment, receipt-roll, and error-clearing actions.
-     * Input: none.
-     * Output: no return value; displays the technician maintenance screen.
-     * Why: Implements UC-08 for the ABM Technician actor.
-     */
     private void showTechnicianMenu() {
         JPanel panel = new JPanel(new GridLayout(0, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(25, 40, 25, 40));
@@ -345,36 +288,35 @@ public class BankGUI {
         frame.repaint();
     }
 
-    /**
-     * Lets the technician choose a bill denomination and number of notes to add.
-     * Input: denomination and positive quantity entered on the maintenance screen.
-     * Output: replenishment confirmation or an error message.
-     * Why: Exposes cash-vault replenishment through the technician GUI.
-     */
     private void replenishCashNotes() {
-        int[] denominations = bank.getSupportedDenominations();
-        Integer[] choices = new Integer[denominations.length];
-        for (int i = 0; i < denominations.length; i++) {
-            choices[i] = denominations[i];
-        }
-
-        JComboBox<Integer> denominationChoice = new JComboBox<>(choices);
-        JTextField quantityField = new JTextField("10");
-        Object[] form = {
-                "Note denomination:", denominationChoice,
-                "Number of notes to add:", quantityField
-        };
-
-        int choice = JOptionPane.showConfirmDialog(
-                frame, form, "Replenish Cash Notes", JOptionPane.OK_CANCEL_OPTION);
-        if (choice != JOptionPane.OK_OPTION) {
-            return;
-        }
-
         try {
+            String currency = askForCurrency("Select the currency to replenish:");
+            if (currency == null) {
+                return;
+            }
+
+            int[] denominations = bank.getSupportedDenominations();
+            Integer[] choices = new Integer[denominations.length];
+            for (int i = 0; i < denominations.length; i++) {
+                choices[i] = denominations[i];
+            }
+
+            JComboBox<Integer> denominationChoice = new JComboBox<>(choices);
+            JTextField quantityField = new JTextField("10");
+            Object[] form = {
+                    "Note denomination:", denominationChoice,
+                    "Number of notes to add:", quantityField
+            };
+
+            int choice = JOptionPane.showConfirmDialog(
+                    frame, form, "Replenish Cash Notes", JOptionPane.OK_CANCEL_OPTION);
+            if (choice != JOptionPane.OK_OPTION) {
+                return;
+            }
+
             int denomination = (Integer) denominationChoice.getSelectedItem();
             int quantity = Integer.parseInt(quantityField.getText().trim());
-            showMessage(bank.replenishCashNotes(denomination, quantity));
+            showMessage(bank.replenishCashNotes(currency, denomination, quantity));
         } catch (NumberFormatException exception) {
             showError("Quantity must be a whole number.");
         } catch (BankException exception) {
@@ -382,18 +324,26 @@ public class BankGUI {
         }
     }
 
-    /**
-     * Asks the customer which linked account to use for a transaction.
-     * Input: prompt - explains whether the customer is choosing a source or destination.
-     * Output: Chequing, Savings, or null if the customer cancels.
-     * Why: Makes account selection explicit for withdrawals, deposits, and transfers.
-     */
-    private String askForAccountType(String prompt) {
+    private String askForCurrency(String prompt) {
+        String[] choices = bank.getSupportedCurrencies();
+        Object selected = JOptionPane.showInputDialog(
+                frame,
+                prompt,
+                "Select Currency",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                choices,
+                choices[0]);
+
+        return selected == null ? null : selected.toString();
+    }
+
+    private String askForAccountType(String prompt, String currency) {
         String[] choices = {Account.CHEQUING, Account.SAVINGS};
         Object selected = JOptionPane.showInputDialog(
                 frame,
                 prompt,
-                "Select Account",
+                "Select " + currency + " Account",
                 JOptionPane.QUESTION_MESSAGE,
                 null,
                 choices,
@@ -402,12 +352,6 @@ public class BankGUI {
         return selected == null ? null : selected.toString();
     }
 
-    /**
-     * Prompts for a monetary amount.
-     * Input: a prompt displayed to the customer.
-     * Output: the parsed amount, or null if the customer cancels.
-     * Why: Reuses the same input behavior for withdrawal and transfer.
-     */
     private Double askForAmount(String prompt) {
         String value = JOptionPane.showInputDialog(frame, prompt);
         if (value == null) {
@@ -416,34 +360,16 @@ public class BankGUI {
         return Double.parseDouble(value.trim());
     }
 
-    /**
-     * Logs out the customer and returns to the login screen.
-     * Input: none.
-     * Output: no return value; the customer session is cleared from the GUI.
-     * Why: Stops the next user from continuing the visible customer's session.
-     */
     private void logout() {
         loggedInCustomer = null;
         showLoginScreen();
     }
 
-    /**
-     * Displays a successful operation or receipt.
-     * Input: message to display.
-     * Output: no return value.
-     * Why: Keeps successful GUI feedback consistent.
-     */
     private void showMessage(String message) {
         JOptionPane.showMessageDialog(
                 frame, message, "iBank", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    /**
-     * Displays a helpful error message.
-     * Input: explanation of the error.
-     * Output: no return value.
-     * Why: Problem 4 requires meaningful messages for exceptional behavior.
-     */
     private void showError(String message) {
         JOptionPane.showMessageDialog(
                 frame, message, "iBank Error", JOptionPane.ERROR_MESSAGE);

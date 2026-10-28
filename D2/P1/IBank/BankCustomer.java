@@ -1,26 +1,24 @@
 /*
- * Purpose: Represents a retail customer and their two linked accounts.
+ * Purpose: Represents a retail customer and their linked accounts.
  * Project role: The backend keeps customer records here, verifies the PIN,
- * changes the PIN, and tracks the customer's combined daily withdrawals.
+ * changes the PIN, and tracks daily withdrawals for each currency.
  */
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class BankCustomer {
 
     private final int cardNumber;
     private final String customerName;
     private String pin;
+    private final Map<String, Account> accounts = new HashMap<>();
     private final Account chequingAccount;
     private final Account savingsAccount;
-    private double dailyWithdrawalTotal;
-    private LocalDate withdrawalDate = LocalDate.now();
+    private final Map<String, Double> dailyWithdrawalTotals = new HashMap<>();
+    private final Map<String, LocalDate> withdrawalDates = new HashMap<>();
 
-    /**
-     * Creates a customer with linked Chequing and Savings accounts.
-     * Input: card number, name, four-digit PIN, and the two starting balances.
-     * Output: a new BankCustomer object.
-     * Why: Keeps customer credentials and linked account records together.
-     */
     public BankCustomer(int cardNumber, String customerName, String pin,
                         double chequingBalance, double savingsBalance)
             throws BankException {
@@ -32,32 +30,23 @@ public class BankCustomer {
         this.cardNumber = cardNumber;
         this.customerName = customerName;
         this.pin = pin;
-        this.chequingAccount = new Account(
-                (long) cardNumber * 10 + 1,
-                Account.CHEQUING,
-                chequingBalance);
-        this.savingsAccount = new Account(
-                (long) cardNumber * 10 + 2,
-                Account.SAVINGS,
-                savingsBalance);
+        this.chequingAccount = createAccount(Account.CHEQUING, Account.CAD, chequingBalance);
+        this.savingsAccount = createAccount(Account.SAVINGS, Account.CAD, savingsBalance);
+
+        for (String currency : Account.SUPPORTED_CURRENCIES) {
+            if (!Account.CAD.equals(currency)) {
+                createAccount(Account.CHEQUING, currency, chequingBalance);
+                createAccount(Account.SAVINGS, currency, savingsBalance);
+            }
+            dailyWithdrawalTotals.put(currency, 0.0);
+            withdrawalDates.put(currency, LocalDate.now().minusDays(1));
+        }
     }
 
-    /**
-     * Checks the PIN entered at login.
-     * Input: the PIN entered by the customer.
-     * Output: true only when it matches the stored PIN.
-     * Why: The backend uses this check before opening a customer session.
-     */
     public boolean verifyPin(String enteredPin) {
         return enteredPin != null && pin.equals(enteredPin);
     }
 
-    /**
-     * Changes the customer's PIN after checking the existing PIN.
-     * Input: old PIN and new PIN.
-     * Output: no return value; the saved PIN changes.
-     * Why: Implements the Change PIN use case while keeping the PIN private.
-     */
     public void changePin(String oldPin, String newPin) throws BankException {
         if (!verifyPin(oldPin)) {
             throw new BankException("The current PIN is incorrect.");
@@ -66,107 +55,101 @@ public class BankCustomer {
         pin = newPin;
     }
 
-    /**
-     * Returns one of the customer's linked accounts.
-     * Input: account type, either Chequing or Savings.
-     * Output: the matching Account object.
-     * Why: Keeps account selection consistent for all banking operations.
-     */
     public Account getAccount(String accountType) throws BankException {
-        if (Account.CHEQUING.equalsIgnoreCase(accountType)) {
-            return chequingAccount;
-        }
-        if (Account.SAVINGS.equalsIgnoreCase(accountType)) {
-            return savingsAccount;
-        }
-        throw new BankException("Select Chequing or Savings.");
+        return getAccount(accountType, Account.CAD);
     }
 
-    /**
-     * Returns the card number used for login.
-     * Input: none.
-     * Output: the customer's card number.
-     * Why: The backend uses this value to locate the customer record.
-     */
+    public Account getAccount(String accountType, String currency) throws BankException {
+        String normalizedCurrency = Account.normalizeCurrency(currency);
+        String key = buildKey(accountType, normalizedCurrency);
+        Account account = accounts.get(key);
+        if (account == null) {
+            throw new BankException("Select Chequing or Savings for a supported currency.");
+        }
+        return account;
+    }
+
     public int getCardNumber() {
         return cardNumber;
     }
 
-    /**
-     * Returns the customer's display name.
-     * Input: none.
-     * Output: the customer's name.
-     * Why: The GUI and receipts identify the logged-in customer.
-     */
     public String getCustomerName() {
         return customerName;
     }
 
-    /**
-     * Returns the Chequing account.
-     * Input: none.
-     * Output: the customer's Chequing Account.
-     * Why: Lets receipts and balance inquiries display both linked accounts.
-     */
     public Account getChequingAccount() {
         return chequingAccount;
     }
 
-    /**
-     * Returns the Savings account.
-     * Input: none.
-     * Output: the customer's Savings Account.
-     * Why: Lets receipts and balance inquiries display both linked accounts.
-     */
     public Account getSavingsAccount() {
         return savingsAccount;
     }
 
-    /**
-     * Returns the total cash withdrawn today across both accounts.
-     * Input: none.
-     * Output: today's combined withdrawal total in CAD.
-     * Why: The daily limit applies to the customer, not separately to each account.
-     */
+    public String[] getSupportedCurrencies() {
+        return Account.SUPPORTED_CURRENCIES.clone();
+    }
+
     public double getDailyWithdrawalTotal() {
-        resetDailyTotalIfNeeded();
-        return dailyWithdrawalTotal;
+        return getDailyWithdrawalTotal(Account.CAD);
     }
 
-    /**
-     * Records a successful cash withdrawal against the daily limit.
-     * Input: the amount successfully withdrawn in CAD.
-     * Output: no return value; today's total increases.
-     * Why: Prevents a customer from avoiding the daily limit by switching accounts.
-     */
-    public void recordDailyWithdrawal(double amount) {
-        resetDailyTotalIfNeeded();
-        dailyWithdrawalTotal = Math.round(
-                (dailyWithdrawalTotal + amount) * 100.0) / 100.0;
-    }
-
-    /**
-     * Resets the withdrawal total when the calendar day changes.
-     * Input: none.
-     * Output: no return value; the total is zeroed on a new day.
-     * Why: Makes the daily withdrawal rule apply to each calendar day.
-     */
-    private void resetDailyTotalIfNeeded() {
-        if (!withdrawalDate.equals(LocalDate.now())) {
-            withdrawalDate = LocalDate.now();
-            dailyWithdrawalTotal = 0.0;
+    public double getDailyWithdrawalTotal(String currency) {
+        String normalizedCurrency;
+        try {
+            normalizedCurrency = Account.normalizeCurrency(currency);
+        } catch (BankException exception) {
+            return 0.0;
         }
+        resetDailyTotalIfNeeded(normalizedCurrency);
+        return dailyWithdrawalTotals.getOrDefault(normalizedCurrency, 0.0);
     }
 
-    /**
-     * Checks that a PIN has exactly four digits.
-     * Input: the PIN to validate.
-     * Output: no return value; invalid PINs cause a BankException.
-     * Why: Both initial PINs and replacement PINs follow the same simple rule.
-     */
+    public void recordDailyWithdrawal(double amount) {
+        recordDailyWithdrawal(Account.CAD, amount);
+    }
+
+    public void recordDailyWithdrawal(String currency, double amount) {
+        String normalizedCurrency;
+        try {
+            normalizedCurrency = Account.normalizeCurrency(currency);
+        } catch (BankException exception) {
+            return;
+        }
+        resetDailyTotalIfNeeded(normalizedCurrency);
+        double current = dailyWithdrawalTotals.getOrDefault(normalizedCurrency, 0.0);
+        dailyWithdrawalTotals.put(normalizedCurrency, roundToCents(current + amount));
+    }
+
     private void validatePin(String value) throws BankException {
         if (value == null || !value.matches("\\d{4}")) {
             throw new BankException("PIN must contain exactly 4 digits.");
         }
+    }
+
+    private Account createAccount(String accountType, String currency, double balance)
+            throws BankException {
+        String normalizedCurrency = Account.normalizeCurrency(currency);
+        String key = buildKey(accountType, normalizedCurrency);
+        long accountNumber = (long) cardNumber * 100 + (accounts.size() + 1);
+        Account account = new Account(accountNumber, accountType, normalizedCurrency, balance);
+        accounts.put(key, account);
+        return account;
+    }
+
+    private String buildKey(String accountType, String currency) {
+        return accountType.toLowerCase(Locale.ROOT) + ":" + currency.toUpperCase(Locale.ROOT);
+    }
+
+    private void resetDailyTotalIfNeeded(String currency) {
+        LocalDate today = LocalDate.now();
+        LocalDate lastReset = withdrawalDates.getOrDefault(currency, LocalDate.now().minusDays(1));
+        if (!today.equals(lastReset)) {
+            withdrawalDates.put(currency, today);
+            dailyWithdrawalTotals.put(currency, 0.0);
+        }
+    }
+
+    private double roundToCents(double amount) {
+        return Math.round(amount * 100.0) / 100.0;
     }
 }
