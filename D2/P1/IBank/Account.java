@@ -4,6 +4,8 @@
  * The backend uses this class to update balances without the GUI changing
  * account data directly.
  */
+import java.text.NumberFormat;
+import java.util.Locale;
 public class Account {
 
     public static final String CAD = "CAD";
@@ -131,7 +133,7 @@ public class Account {
         }
 
         String normalized = currency.trim().toUpperCase();
-        if ("EURO".equals(normalized) || "EUR".equals(normalized) || "\u20AC".equals(normalized)) {
+        if ("EURO".equals(normalized) || "EUR".equals(normalized) || "€".equals(normalized)) {
             return EUR;
         }
         if ("USD".equals(normalized) || "US$".equals(normalized) || "$".equals(normalized)) {
