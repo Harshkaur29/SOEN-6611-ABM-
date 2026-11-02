@@ -22,11 +22,9 @@ The roles and responsibilities for Deliverable 2 were decided collectively by al
   
 Each team member is responsible for completing their assigned tasks, ensuring the correctness and clarity of their work, and making the corresponding materials available to the team by the agreed deadline. Team members will coordinate where necessary to ensure that the testing activities for P4(b) align with the implementation completed for P4(a). All contributions will be reviewed collectively to maintain consistency and completeness across Deliverable 2.
 
-# iBank - Problem 4 Source
+# iBank - Problem 4a
 
 Author: SYED SHAHAB SHAH
-
-SOEN 6611, Concordia University, Fall 2026
 
 ## Goal
 The goal of this project is to model a realistic retail banking and ABM experience in a Java Swing application. The system is designed to allow customers to authenticate securely, view balances, transfer funds, deposit cash, withdraw cash, and perform everyday banking actions in a simulated environment. In this version, the system is expanded to support multiple currencies so that it aligns with the requirement that customers may have accounts and ABM transactions in several currencies.
@@ -117,3 +115,28 @@ java IBankDemo
 8. Hardware-error and empty-receipt-roll simulation buttons exist only to demonstrate/test the maintenance use case without physical ABM hardware.
 9. Receipts are displayed on screen; no physical printer is connected.
 10. Amounts are held as double values rounded to cents for teaching simplicity. This is not a production financial ledger design.
+
+## Problem 4(b) – Testing
+
+Author: SWATHI PRIYA PASUMARTHY
+
+### Overview
+
+Problem 4(b) focuses on verifying the functionality, reliability, and error handling of the iBank application using representative test cases. Both automated testing and manual GUI testing are used to evaluate the application's behavior under valid and invalid conditions.
+
+### Automated Testing
+
+Automated tests are implemented in `IBankTests.java` using a standalone Java test runner without an external testing framework.
+
+The test suite covers the following functional areas:
+
+- Customer authentication and invalid PIN handling.
+- Account balance inquiries.
+- Cash deposits and withdrawals.
+- Fund transfers between accounts.
+- PIN changes and input validation.
+- Currency and transaction validation.
+- Daily withdrawal limits and insufficient-funds handling.
+- Exception handling and error conditions.
+- Technician authentication and maintenance operations.
+- Cash replenishment, receipt-roll replacement, and hardware error handling.
