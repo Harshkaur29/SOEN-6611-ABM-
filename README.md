@@ -140,3 +140,15 @@ The test suite covers the following functional areas:
 - Exception handling and error conditions.
 - Technician authentication and maintenance operations.
 - Cash replenishment, receipt-roll replacement, and hardware error handling.
+
+#### How to Run the Tests
+
+Compile the Java source files:
+
+    javac *.java
+
+Execute the automated test suite:
+
+    java IBankTests
+
+The test runner displays the execution results in the terminal.
