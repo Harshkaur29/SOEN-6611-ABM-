@@ -153,6 +153,23 @@ Execute the automated test suite:
 
 The test runner displays the execution results in the terminal.
 
+### Test Case Summary
+
+The following table summarizes all 57 automated test cases implemented in `IBankTests.java`.
+
+| Test ID | Test Scenario | Test Type | Expected Result | Status |
+|---|---|---|---|---|
+| TC-01–TC-06 | Customer authentication and security, including invalid credentials and card lockout | Automated | Valid login succeeds; invalid credentials are rejected; three consecutive failed attempts lock the card. | PASS |
+| TC-07–TC-08 | Account balance inquiry | Automated | Balance information is returned without modifying account balances. | PASS |
+| TC-09–TC-18 | Cash withdrawals, including amount validation, daily limits, and hardware errors | Automated | Valid withdrawals update the correct balance; invalid withdrawals are rejected without changing the balance. | PASS |
+| TC-19–TC-25 | Cash deposits, including note-count validation and account selection | Automated | Valid deposits update the selected account; invalid deposits are rejected. | PASS |
+| TC-26–TC-32 | Fund transfers, including amount validation and balance conservation | Automated | Valid transfers update source and destination balances correctly; invalid transfers are rejected. | PASS |
+| TC-33–TC-36, TC-50 | PIN management and validation | Automated | Valid PIN changes succeed; invalid PIN changes are rejected; the old PIN is no longer accepted after a successful change. | PASS |
+| TC-37–TC-39, TC-49, TC-51–TC-53 | Multi-currency transactions and currency validation | Automated | Transactions affect the selected currency account; unsupported currencies are rejected. | PASS |
+| TC-40–TC-44, TC-54–TC-55 | Technician authentication, cash replenishment, diagnostics, and denomination validation | Automated | Valid maintenance operations are accepted, and invalid credentials, quantities, or denominations are rejected. | PASS |
+| TC-45–TC-48 | Additional withdrawal and transfer edge cases | Automated | Withdrawal and transfer operations handle denomination restrictions, full-balance transactions, and account isolation correctly. | PASS |
+| TC-56–TC-57 | Hardware error recovery and deposit transaction integrity | Automated | Withdrawals succeed after hardware errors are cleared; rejected deposits do not partially update balances. | PASS |
+
 ### Automated Test Results
 
 All 57 automated test cases passed successfully.
@@ -164,17 +181,4 @@ All 57 automated test cases passed successfully.
 | Tests failed | 0 |
 | Pass rate | 100% |
 
-**Result:** All 57 automated test cases passed, with no failures reported during execution.
-
-### Test Case Summary
-
-| Test ID | Test Scenario | Test Type | Expected Result | Status |
-|---|---|---|---|---|
-| TC-01–TC-10 | Customer authentication and account validation | Automated | Valid inputs are accepted, and invalid inputs are handled appropriately. | PASS |
-| TC-11–TC-20 | Balance inquiries, deposits, and withdrawals | Automated | Account balances and cash transactions are processed correctly. | PASS |
-| TC-21–TC-30 | Fund transfers and PIN changes | Automated | Valid operations succeed, and invalid operations are rejected. | PASS |
-| TC-31–TC-40 | Transaction limits, currency validation, and exception handling | Automated | Invalid transactions are rejected, and applicable limits are enforced. | PASS |
-| TC-41–TC-57 | Additional validation, error handling, and maintenance operations | Automated | The application handles tested scenarios according to the implemented business rules. | PASS |
-| TC-58 | Successful customer login | Manual GUI | The customer can log in using valid credentials. | To be recorded |
-| TC-59 | Invalid PIN and card lockout | Manual GUI | Appropriate error messages are displayed, and the card is locked after three consecutive failed attempts. | To be recorded |
-| TC-60 | Banking transaction and balance verification | Manual GUI | The transaction is processed correctly, and the account balance reflects the transaction. | To be recorded |
+**Result:** All automated test cases passed successfully, with no failures reported during execution.
