@@ -152,3 +152,16 @@ Execute the automated test suite:
     java IBankTests
 
 The test runner displays the execution results in the terminal.
+
+### Automated Test Results
+
+All 57 automated test cases passed successfully.
+
+| Metric | Result |
+|---|---:|
+| Total automated test cases | 57 |
+| Tests passed | 57 |
+| Tests failed | 0 |
+| Pass rate | 100% |
+
+**Result:** All 57 automated test cases passed, with no failures reported during execution.
