@@ -165,3 +165,16 @@ All 57 automated test cases passed successfully.
 | Pass rate | 100% |
 
 **Result:** All 57 automated test cases passed, with no failures reported during execution.
+
+### Test Case Summary
+
+| Test ID | Test Scenario | Test Type | Expected Result | Status |
+|---|---|---|---|---|
+| TC-01–TC-10 | Customer authentication and account validation | Automated | Valid inputs are accepted, and invalid inputs are handled appropriately. | PASS |
+| TC-11–TC-20 | Balance inquiries, deposits, and withdrawals | Automated | Account balances and cash transactions are processed correctly. | PASS |
+| TC-21–TC-30 | Fund transfers and PIN changes | Automated | Valid operations succeed, and invalid operations are rejected. | PASS |
+| TC-31–TC-40 | Transaction limits, currency validation, and exception handling | Automated | Invalid transactions are rejected, and applicable limits are enforced. | PASS |
+| TC-41–TC-57 | Additional validation, error handling, and maintenance operations | Automated | The application handles tested scenarios according to the implemented business rules. | PASS |
+| TC-58 | Successful customer login | Manual GUI | The customer can log in using valid credentials. | To be recorded |
+| TC-59 | Invalid PIN and card lockout | Manual GUI | Appropriate error messages are displayed, and the card is locked after three consecutive failed attempts. | To be recorded |
+| TC-60 | Banking transaction and balance verification | Manual GUI | The transaction is processed correctly, and the account balance reflects the transaction. | To be recorded |
