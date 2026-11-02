@@ -9,11 +9,10 @@
  * transaction-integrity, currency, and maintenance testing.
  *
  * Framework:
- * Standalone Java test runner. No JUnit required.
+ * Standalone Java test runner. 
  *
  * Important:
  * Run against a fresh BankBackend instance for independent tests.
- * The three GUI cases at the end must be performed manually.
  */
 
 public class IBankTests {
@@ -31,8 +30,7 @@ public class IBankTests {
         void execute() throws Exception;
     }
 
-    private static void runTest(String id, String description,
-                                TestCase test) {
+    private static void runTest(String id, String description, TestCase test) {
         try {
             test.execute();
             passed++;
@@ -45,9 +43,7 @@ public class IBankTests {
     }
 
     private static void check(boolean condition, String message) {
-        if (!condition) {
-            throw new AssertionError(message);
-        }
+        if (!condition) throw new AssertionError(message);
     }
 
     private static void checkMoney(double actual, double expected,
@@ -59,8 +55,7 @@ public class IBankTests {
         }
     }
 
-    private static void expectBankException(BankAction action,
-                                            String message)
+    private static void expectBankException(BankAction action, String message)
             throws Exception {
         try {
             action.execute();
