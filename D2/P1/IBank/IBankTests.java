@@ -979,11 +979,6 @@ public class IBankTests {
             );
         });
 
-        // =========================================================
-        // MANUAL GUI TESTS
-        // These are listed separately because they require user input.
-        // =========================================================
-
         System.out.println();
         System.out.println("========== AUTOMATED TEST SUMMARY ==========");
         System.out.println("Tests passed: " + passed);
