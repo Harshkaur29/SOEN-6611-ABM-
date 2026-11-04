@@ -1,4 +1,4 @@
-/*
+/**
  * Purpose: Represents one linked Chequing or Savings account.
  * Project role: Stores an account number, account type, currency, and balance.
  * The backend uses this class to update balances without the GUI changing
@@ -8,12 +8,18 @@ import java.text.NumberFormat;
 import java.util.Locale;
 public class Account {
 
+    /** Canadian dollar currency code. */
     public static final String CAD = "CAD";
+    /** United States dollar currency code. */
     public static final String USD = "USD";
+    /** Euro currency code. */
     public static final String EUR = "EUR";
+    /** Currency codes supported by the application. */
     public static final String[] SUPPORTED_CURRENCIES = {CAD, USD, EUR};
 
+    /** Chequing account type. */
     public static final String CHEQUING = "Chequing";
+    /** Savings account type. */
     public static final String SAVINGS = "Savings";
 
     private final long accountNumber;
@@ -23,9 +29,11 @@ public class Account {
 
     /**
      * Creates one bank account in CAD.
-     * Input: account number, account type, and starting balance.
-     * Output: a new Account object.
-     * Why: Keeps each linked account's identity and balance together.
+     *
+     * @param accountNumber account number
+     * @param accountType account type
+     * @param startingBalance initial balance
+     * @throws BankException if an input is invalid
      */
     public Account(long accountNumber, String accountType, double startingBalance)
             throws BankException {
@@ -34,9 +42,12 @@ public class Account {
 
     /**
      * Creates one bank account in the given currency.
-     * Input: account number, account type, currency, and starting balance.
-     * Output: a new Account object.
-     * Why: Supports multi-currency accounts.
+     *
+     * @param accountNumber account number
+     * @param accountType account type
+     * @param currency account currency
+     * @param startingBalance initial balance
+     * @throws BankException if an input is invalid
      */
     public Account(long accountNumber, String accountType, String currency,
                   double startingBalance) throws BankException {
@@ -58,9 +69,9 @@ public class Account {
 
     /**
      * Adds money to this account.
-     * Input: amount in the account's currency.
-     * Output: no return value; the balance is updated.
-     * Why: Used for cash deposits and incoming transfers.
+     *
+     * @param amount amount in the account's currency
+     * @throws BankException if the amount is invalid
      */
     public void deposit(double amount) throws BankException {
         validatePositiveAmount(amount);
@@ -69,9 +80,9 @@ public class Account {
 
     /**
      * Removes money when the account has enough funds.
-     * Input: amount in the account's currency.
-     * Output: no return value; the balance is updated.
-     * Why: Used for withdrawals and outgoing transfers.
+     *
+     * @param amount amount in the account's currency
+     * @throws BankException if the amount is invalid or funds are insufficient
      */
     public void withdraw(double amount) throws BankException {
         validatePositiveAmount(amount);
@@ -83,9 +94,8 @@ public class Account {
 
     /**
      * Returns the account number.
-     * Input: none.
-     * Output: this account's number.
-     * Why: Receipts and balance inquiries identify each linked account.
+     *
+     * @return this account's number
      */
     public long getAccountNumber() {
         return accountNumber;
@@ -93,9 +103,8 @@ public class Account {
 
     /**
      * Returns the account type.
-     * Input: none.
-     * Output: Chequing or Savings.
-     * Why: The backend and GUI need to identify the selected account.
+     *
+     * @return {@link #CHEQUING} or {@link #SAVINGS}
      */
     public String getAccountType() {
         return accountType;
@@ -103,9 +112,8 @@ public class Account {
 
     /**
      * Returns the account currency.
-     * Input: none.
-     * Output: CAD, USD, or EUR.
-     * Why: Multi-currency operations must validate the selected currency.
+     *
+     * @return the supported currency code
      */
     public String getCurrency() {
         return currency;
@@ -113,9 +121,8 @@ public class Account {
 
     /**
      * Returns the current balance.
-     * Input: none.
-     * Output: the balance rounded to cents.
-     * Why: Used in balance inquiries, receipts, and tests.
+     *
+     * @return the balance rounded to cents
      */
     public double getBalance() {
         return balance;
@@ -123,9 +130,10 @@ public class Account {
 
     /**
      * Normalizes a currency code and validates that it is supported.
-     * Input: the entered currency code.
-     * Output: the canonical currency code.
-     * Why: Accepts common spellings such as EURO and keeps the model consistent.
+     *
+     * @param currency entered currency code
+     * @return the canonical supported currency code
+     * @throws BankException if the currency is missing or unsupported
      */
     public static String normalizeCurrency(String currency) throws BankException {
         if (currency == null) {
@@ -150,9 +158,9 @@ public class Account {
 
     /**
      * Checks that an operation uses a finite positive amount with at most two decimals.
-     * Input: the amount supplied to a deposit or withdrawal.
-     * Output: no return value; invalid amounts cause a BankException.
-     * Why: Prevents values such as NaN or fractions of a cent from corrupting a balance.
+     *
+     * @param amount amount supplied to a deposit or withdrawal
+     * @throws BankException if the amount is invalid
      */
     private void validatePositiveAmount(double amount) throws BankException {
         if (!Double.isFinite(amount) || amount <= 0) {
@@ -166,9 +174,9 @@ public class Account {
 
     /**
      * Rounds a value to two decimal places.
-     * Input: a monetary amount.
-     * Output: the amount rounded to cents.
-     * Why: Keeps displayed balances readable in this small simulation.
+     *
+     * @param amount monetary amount
+     * @return amount rounded to cents
      */
     private double roundToCents(double amount) {
         return Math.round(amount * 100.0) / 100.0;

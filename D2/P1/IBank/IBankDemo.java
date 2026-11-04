@@ -1,4 +1,4 @@
-/*
+/**
  * Purpose: Runs representative backend tests for Problem 4(b).
  * Project role: Demonstrates customer transactions, exception handling, lockout,
  * diagnostics, cash replenishment, receipt-roll replacement, and error clearing.
@@ -8,9 +8,8 @@ public class IBankDemo {
 
     /**
      * Runs representative success and failure scenarios.
-     * Input: none.
-     * Output: receipts, maintenance messages, and expected errors on the console.
-     * Why: Verifies the banking backend without requiring manual GUI interaction.
+     *
+     * @param args command-line arguments, which are not used
      */
     public static void main(String[] args) {
         BankBackend bank = new BankBackend();
@@ -66,9 +65,6 @@ public class IBankDemo {
 
     /**
      * Confirms that three consecutive invalid PINs lock the card for this run.
-     * Input: none; this method creates a separate backend for an isolated test.
-     * Output: three expected error messages, including the lockout message.
-     * Why: Tests UC-01 without locking the customer used by the transaction demo.
      */
     private static void testThreeFailureLockout() {
         BankBackend testBank = new BankBackend();

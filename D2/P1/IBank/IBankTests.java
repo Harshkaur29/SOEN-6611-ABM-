@@ -1,4 +1,4 @@
-/*
+/**
  * IBankTests.java
  *
  * Purpose:
@@ -30,6 +30,13 @@ public class IBankTests {
         void execute() throws Exception;
     }
 
+    /**
+     * Executes one test case and records its result.
+     *
+     * @param id test identifier
+     * @param description test description
+     * @param test test operation
+     */
     private static void runTest(String id, String description, TestCase test) {
         try {
             test.execute();
@@ -42,10 +49,23 @@ public class IBankTests {
         }
     }
 
+    /**
+     * Fails the current test when a condition is false.
+     *
+     * @param condition condition to validate
+     * @param message failure message
+     */
     private static void check(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
     }
 
+    /**
+     * Compares two monetary values using the test tolerance.
+     *
+     * @param actual observed amount
+     * @param expected expected amount
+     * @param message failure message
+     */
     private static void checkMoney(double actual, double expected,
                                    String message) {
         if (Math.abs(actual - expected) > 0.001) {
@@ -55,6 +75,13 @@ public class IBankTests {
         }
     }
 
+    /**
+     * Verifies that an operation raises a {@link BankException}.
+     *
+     * @param action operation expected to fail
+     * @param message failure message if no exception is raised
+     * @throws Exception if the operation raises an unexpected checked exception
+     */
     private static void expectBankException(BankAction action, String message)
             throws Exception {
         try {
@@ -66,18 +93,41 @@ public class IBankTests {
         throw new AssertionError(message);
     }
 
+    /**
+     * Logs a test customer into a backend.
+     *
+     * @param bank backend under test
+     * @param cardNumber card number
+     * @param pin PIN
+     * @return authenticated customer
+     * @throws Exception if authentication fails
+     */
     private static BankCustomer login(BankBackend bank,
                                       int cardNumber,
                                       String pin) throws Exception {
         return bank.login(cardNumber, pin);
     }
 
+    /**
+     * Reads an account balance for assertions.
+     *
+     * @param customer customer owning the account
+     * @param accountType account type
+     * @param currency account currency
+     * @return current account balance
+     * @throws BankException if the account cannot be found
+     */
     private static double balance(BankCustomer customer,
                                  String accountType,
                                  String currency) throws BankException {
         return customer.getAccount(accountType, currency).getBalance();
     }
 
+    /**
+     * Runs the complete standalone iBank test suite.
+     *
+     * @param args command-line arguments, which are not used
+     */
     public static void main(String[] args) {
 
         // =========================================================

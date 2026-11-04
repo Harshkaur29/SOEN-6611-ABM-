@@ -1,4 +1,4 @@
-/*
+/**
  * Purpose: Provides the Swing graphical user interface for iBank.
  * Project role: Problem 4 explicitly requires a Java Swing or JavaFX GUI.
  * This class collects customer/technician input and displays backend results
@@ -13,6 +13,11 @@ public class BankGUI {
     private final JFrame frame;
     private BankCustomer loggedInCustomer;
 
+    /**
+     * Creates the iBank Swing interface for a backend.
+     *
+     * @param bank backend used to process customer and maintenance actions
+     */
     public BankGUI(BankBackend bank) {
         this.bank = bank;
         frame = new JFrame("iBank - Retail ABM");
@@ -21,11 +26,13 @@ public class BankGUI {
         frame.setLocationRelativeTo(null);
     }
 
+    /** Displays the login screen and makes the main window visible. */
     public void start() {
         showLoginScreen();
         frame.setVisible(true);
     }
 
+    /** Builds the customer and technician login screen. */
     private void showLoginScreen() {
         JPanel panel = new JPanel(new GridLayout(0, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(30, 45, 30, 45));
@@ -53,6 +60,12 @@ public class BankGUI {
         frame.repaint();
     }
 
+    /**
+     * Reads customer credentials from the form and authenticates them.
+     *
+     * @param cardField card-number input field
+     * @param pinField PIN input field
+     */
     private void login(JTextField cardField, JPasswordField pinField) {
         try {
             int cardNumber = Integer.parseInt(cardField.getText().trim());
@@ -66,6 +79,7 @@ public class BankGUI {
         }
     }
 
+    /** Builds the transaction screen for the authenticated customer. */
     private void showMainScreen() {
         JPanel panel = new JPanel(new GridLayout(0, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(18, 35, 18, 35));
@@ -102,6 +116,7 @@ public class BankGUI {
         frame.repaint();
     }
 
+    /** Collects withdrawal details and requests a cash withdrawal. */
     private void withdrawCash() {
         try {
             String currency = askForCurrency("Withdraw cash in which currency?");
@@ -128,6 +143,7 @@ public class BankGUI {
         }
     }
 
+    /** Collects deposited bill counts and requests a cash deposit. */
     private void depositCash() {
         try {
             String currency = askForCurrency("Deposit cash in which currency?");
@@ -169,10 +185,12 @@ public class BankGUI {
         }
     }
 
+    /** Displays the authenticated customer's balance inquiry receipt. */
     private void showBalance() {
         showMessage(bank.balanceInquiry(loggedInCustomer));
     }
 
+    /** Collects transfer details and requests an account transfer. */
     private void transferFunds() {
         try {
             String currency = askForCurrency("Transfer which currency?");
@@ -205,6 +223,7 @@ public class BankGUI {
         }
     }
 
+    /** Collects old and new PINs and requests a PIN change. */
     private void changePin() {
         JPasswordField oldPinField = new JPasswordField();
         JPasswordField newPinField = new JPasswordField();
@@ -229,6 +248,7 @@ public class BankGUI {
         }
     }
 
+    /** Authenticates a technician and opens the maintenance screen. */
     private void technicianLogin() {
         JPasswordField codeField = new JPasswordField();
         int choice = JOptionPane.showConfirmDialog(
@@ -245,6 +265,7 @@ public class BankGUI {
         }
     }
 
+    /** Builds the ABM technician maintenance screen. */
     private void showTechnicianMenu() {
         JPanel panel = new JPanel(new GridLayout(0, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(25, 40, 25, 40));
@@ -288,6 +309,7 @@ public class BankGUI {
         frame.repaint();
     }
 
+    /** Collects note replenishment details and updates the cash inventory. */
     private void replenishCashNotes() {
         try {
             String currency = askForCurrency("Select the currency to replenish:");
@@ -324,6 +346,12 @@ public class BankGUI {
         }
     }
 
+    /**
+     * Displays a currency selection dialog.
+     *
+     * @param prompt prompt shown to the user
+     * @return selected currency, or {@code null} if cancelled
+     */
     private String askForCurrency(String prompt) {
         String[] choices = bank.getSupportedCurrencies();
         Object selected = JOptionPane.showInputDialog(
@@ -338,6 +366,13 @@ public class BankGUI {
         return selected == null ? null : selected.toString();
     }
 
+    /**
+     * Displays an account-type selection dialog.
+     *
+     * @param prompt prompt shown to the user
+     * @param currency currency displayed in the dialog title
+     * @return selected account type, or {@code null} if cancelled
+     */
     private String askForAccountType(String prompt, String currency) {
         String[] choices = {Account.CHEQUING, Account.SAVINGS};
         Object selected = JOptionPane.showInputDialog(
@@ -352,6 +387,13 @@ public class BankGUI {
         return selected == null ? null : selected.toString();
     }
 
+    /**
+     * Displays an amount input dialog.
+     *
+     * @param prompt prompt shown to the user
+     * @return entered amount, or {@code null} if cancelled
+     * @throws NumberFormatException if the input is not numeric
+     */
     private Double askForAmount(String prompt) {
         String value = JOptionPane.showInputDialog(frame, prompt);
         if (value == null) {
@@ -360,16 +402,27 @@ public class BankGUI {
         return Double.parseDouble(value.trim());
     }
 
+    /** Clears the active customer and returns to the login screen. */
     private void logout() {
         loggedInCustomer = null;
         showLoginScreen();
     }
 
+    /**
+     * Displays an informational message.
+     *
+     * @param message message to display
+     */
     private void showMessage(String message) {
         JOptionPane.showMessageDialog(
                 frame, message, "iBank", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /**
+     * Displays an error message.
+     *
+     * @param message error text to display
+     */
     private void showError(String message) {
         JOptionPane.showMessageDialog(
                 frame, message, "iBank Error", JOptionPane.ERROR_MESSAGE);

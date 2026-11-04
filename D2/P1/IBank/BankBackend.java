@@ -1,4 +1,4 @@
-/*
+/**
  * Purpose: Simulates the central iBank banking backend.
  * Project role: Verifies card/PIN credentials, enforces cash-withdrawal limits,
  * updates account balances, manages note cassettes, and creates dated
@@ -15,6 +15,7 @@ import java.util.Set;
 
 public class BankBackend {
 
+    /** Maximum total cash withdrawal allowed per currency per day. */
     public static final double DAILY_WITHDRAWAL_LIMIT = 1000.00;
 
     private static final int[] DENOMINATIONS = {100, 50, 20, 10, 5};
@@ -30,6 +31,9 @@ public class BankBackend {
     private boolean hardwareError;
     private boolean receiptRollAvailable = true;
 
+    /**
+     * Creates the backend and loads representative customer and cash data.
+     */
     public BankBackend() {
         for (String currency : Account.SUPPORTED_CURRENCIES) {
             cashNotesByCurrency.put(currency, new int[] {20, 30, 100, 100, 100});
@@ -46,6 +50,14 @@ public class BankBackend {
         }
     }
 
+    /**
+     * Authenticates a customer and applies the session lockout policy.
+     *
+     * @param cardNumber card number supplied by the customer
+     * @param pin PIN supplied by the customer
+     * @return the authenticated customer
+     * @throws BankException if credentials are invalid or the card is locked
+     */
     public BankCustomer login(int cardNumber, String pin) throws BankException {
         if (lockedCards.contains(cardNumber)) {
             throw new BankException(
@@ -71,21 +83,47 @@ public class BankBackend {
         return customer;
     }
 
+    /**
+     * Authenticates an ABM technician.
+     *
+     * @param enteredPin technician code
+     * @throws BankException if the code is incorrect
+     */
     public void authenticateTechnician(String enteredPin) throws BankException {
         if (enteredPin == null || !TECHNICIAN_PIN.equals(enteredPin)) {
             throw new BankException("Technician code is incorrect.");
         }
     }
 
+    /** @return a copy of the currencies supported by the ABM. */
     public String[] getSupportedCurrencies() {
         return Account.SUPPORTED_CURRENCIES.clone();
     }
 
+    /**
+     * Withdraws CAD cash from a customer's account.
+     *
+     * @param customer authenticated customer
+     * @param accountType source account type
+     * @param amount whole-dollar withdrawal amount
+     * @return transaction receipt
+     * @throws BankException if the transaction violates an ABM or banking rule
+     */
     public String withdrawCash(BankCustomer customer, String accountType,
                                double amount) throws BankException {
         return withdrawCash(customer, accountType, Account.CAD, amount);
     }
 
+    /**
+     * Withdraws cash in a selected currency from a customer's account.
+     *
+     * @param customer authenticated customer
+     * @param accountType source account type
+     * @param currency withdrawal currency
+     * @param amount whole-dollar withdrawal amount
+     * @return transaction receipt
+     * @throws BankException if the transaction violates an ABM or banking rule
+     */
     public String withdrawCash(BankCustomer customer, String accountType,
                                String currency, double amount) throws BankException {
         ensureCashMachineReady();
@@ -130,11 +168,30 @@ public class BankBackend {
                         + "Notes dispensed: " + describeNotes(notesToDispense));
     }
 
+    /**
+     * Deposits CAD bills into a customer's account.
+     *
+     * @param customer authenticated customer
+     * @param accountType destination account type
+     * @param billCounts note counts in supported-denomination order
+     * @return transaction receipt
+     * @throws BankException if the deposit is invalid or the ABM is unavailable
+     */
     public String depositCash(BankCustomer customer, String accountType,
                               int[] billCounts) throws BankException {
         return depositCash(customer, accountType, Account.CAD, billCounts);
     }
 
+    /**
+     * Deposits bills in a selected currency into a customer's account.
+     *
+     * @param customer authenticated customer
+     * @param accountType destination account type
+     * @param currency deposit currency
+     * @param billCounts note counts in supported-denomination order
+     * @return transaction receipt
+     * @throws BankException if the deposit is invalid or the ABM is unavailable
+     */
     public String depositCash(BankCustomer customer, String accountType,
                               String currency, int[] billCounts) throws BankException {
         ensureCashMachineReady();
@@ -157,6 +214,12 @@ public class BankBackend {
                         + "Bills accepted: " + describeNotes(billCounts));
     }
 
+    /**
+     * Creates a receipt containing all supported-currency account balances.
+     *
+     * @param customer authenticated customer
+     * @return balance inquiry receipt
+     */
     public String balanceInquiry(BankCustomer customer) {
         StringBuilder detail = new StringBuilder();
         for (String currency : customer.getSupportedCurrencies()) {
@@ -175,12 +238,33 @@ public class BankBackend {
         return createReceipt("Balance Inquiry", customer, detail.toString());
     }
 
+    /**
+     * Transfers CAD funds between two customer accounts.
+     *
+     * @param customer authenticated customer
+     * @param sourceType source account type
+     * @param targetType destination account type
+     * @param amount amount to transfer
+     * @return transaction receipt
+     * @throws BankException if the transfer is invalid
+     */
     public String transferFunds(BankCustomer customer, String sourceType,
                                 String targetType, double amount)
             throws BankException {
         return transferFunds(customer, sourceType, targetType, Account.CAD, amount);
     }
 
+    /**
+     * Transfers funds in a selected currency between customer accounts.
+     *
+     * @param customer authenticated customer
+     * @param sourceType source account type
+     * @param targetType destination account type
+     * @param currency transfer currency
+     * @param amount amount to transfer
+     * @return transaction receipt
+     * @throws BankException if the transfer is invalid
+     */
     public String transferFunds(BankCustomer customer, String sourceType,
                                 String targetType, String currency, double amount)
             throws BankException {
@@ -207,16 +291,27 @@ public class BankBackend {
                         + "Amount transferred: " + money(amount, normalizedCurrency));
     }
 
+    /**
+     * Changes a customer's PIN and creates a confirmation receipt.
+     *
+     * @param customer authenticated customer
+     * @param oldPin current PIN
+     * @param newPin replacement PIN
+     * @return confirmation receipt
+     * @throws BankException if either PIN is invalid
+     */
     public String changePin(BankCustomer customer, String oldPin, String newPin)
             throws BankException {
         customer.changePin(oldPin, newPin);
         return createReceipt("Change PIN", customer, "PIN changed successfully.");
     }
 
+    /** @return a copy of the supported cash denominations. */
     public int[] getSupportedDenominations() {
         return Arrays.copyOf(DENOMINATIONS, DENOMINATIONS.length);
     }
 
+    /** @return a report of ABM hardware, receipt, and cash inventory status. */
     public String runDiagnostics() {
         StringBuilder report = new StringBuilder();
         report.append("iBank ABM Diagnostics\n");
@@ -239,11 +334,28 @@ public class BankBackend {
         return report.toString();
     }
 
+    /**
+     * Adds CAD notes to the cash inventory.
+     *
+     * @param denomination note denomination
+     * @param quantity number of notes to add
+     * @return replenishment status message
+     * @throws BankException if the denomination or quantity is invalid
+     */
     public String replenishCashNotes(int denomination, int quantity)
             throws BankException {
         return replenishCashNotes(Account.CAD, denomination, quantity);
     }
 
+    /**
+     * Adds notes in a selected currency to the cash inventory.
+     *
+     * @param currency inventory currency
+     * @param denomination note denomination
+     * @param quantity number of notes to add
+     * @return replenishment status message
+     * @throws BankException if an input is invalid
+     */
     public String replenishCashNotes(String currency, int denomination, int quantity)
             throws BankException {
         String normalizedCurrency = Account.normalizeCurrency(currency);
@@ -263,19 +375,23 @@ public class BankBackend {
                 + ".";
     }
 
+    /** @return status message confirming that the receipt roll is available. */
     public String replaceReceiptRoll() {
         receiptRollAvailable = true;
         return "Paper receipt roll replaced. Receipt roll is available.";
     }
 
+    /** Activates a simulated hardware error for demonstrations and tests. */
     public void simulateHardwareErrorForDemo() {
         hardwareError = true;
     }
 
+    /** Marks the simulated receipt roll as empty for demonstrations and tests. */
     public void simulateEmptyReceiptRollForDemo() {
         receiptRollAvailable = false;
     }
 
+    /** @return status message after clearing simulated hardware errors. */
     public String clearHardwareErrors() {
         hardwareError = false;
         return "Hardware errors cleared. Cash operations are available again.";
@@ -427,7 +543,7 @@ public class BankBackend {
                 symbol = "$";
                 break;
             case Account.EUR:
-                symbol = "€";
+                symbol = "\u20AC";;
                 break;
             default:
                 symbol = "$";
