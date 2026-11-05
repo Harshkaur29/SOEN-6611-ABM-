@@ -235,7 +235,7 @@ public class BankBackend {
                         .append(exception.getMessage()).append("\n");
             }
         }
-        return createReceipt("Balance Inquiry", customer, detail.toString());
+        return createReceipt("Balance Inquiry", customer, detail.toString(), false);
     }
 
     /**
@@ -303,7 +303,7 @@ public class BankBackend {
     public String changePin(BankCustomer customer, String oldPin, String newPin)
             throws BankException {
         customer.changePin(oldPin, newPin);
-        return createReceipt("Change PIN", customer, "PIN changed successfully.");
+        return "PIN changed successfully.";
     }
 
     /** @return a copy of the supported cash denominations. */
@@ -398,6 +398,11 @@ public class BankBackend {
     }
 
     private String createReceipt(String type, BankCustomer customer, String details) {
+        return createReceipt(type, customer, details, true);
+    }
+
+    private String createReceipt(String type, BankCustomer customer, String details,
+                                 boolean includeAccountBalances) {
         StringBuilder receipt = new StringBuilder();
         receipt.append("iBank Receipt #").append(nextReceiptNumber++).append("\n");
         receipt.append("Date/Time: ")
@@ -406,23 +411,25 @@ public class BankBackend {
         receipt.append("Customer: ").append(customer.getCustomerName()).append("\n");
         receipt.append("Details: ").append(details).append("\n");
 
-        for (String currency : customer.getSupportedCurrencies()) {
-            try {
-                Account chequing = customer.getAccount(Account.CHEQUING, currency);
-                Account savings = customer.getAccount(Account.SAVINGS, currency);
-                receipt.append(currency).append(" Chequing account ")
-                        .append(chequing.getAccountNumber())
-                        .append(" balance: ")
-                        .append(money(chequing.getBalance(), currency))
-                        .append("\n");
-                receipt.append(currency).append(" Savings account ")
-                        .append(savings.getAccountNumber())
-                        .append(" balance: ")
-                        .append(money(savings.getBalance(), currency))
-                        .append("\n");
-            } catch (BankException exception) {
-                receipt.append(currency).append(" account data unavailable: ")
-                        .append(exception.getMessage()).append("\n");
+        if (includeAccountBalances) {
+            for (String currency : customer.getSupportedCurrencies()) {
+                try {
+                    Account chequing = customer.getAccount(Account.CHEQUING, currency);
+                    Account savings = customer.getAccount(Account.SAVINGS, currency);
+                    receipt.append(currency).append(" Chequing account ")
+                            .append(chequing.getAccountNumber())
+                            .append(" balance: ")
+                            .append(money(chequing.getBalance(), currency))
+                            .append("\n");
+                    receipt.append(currency).append(" Savings account ")
+                            .append(savings.getAccountNumber())
+                            .append(" balance: ")
+                            .append(money(savings.getBalance(), currency))
+                            .append("\n");
+                } catch (BankException exception) {
+                    receipt.append(currency).append(" account data unavailable: ")
+                            .append(exception.getMessage()).append("\n");
+                }
             }
         }
         return receipt.toString();
@@ -543,7 +550,7 @@ public class BankBackend {
                 symbol = "$";
                 break;
             case Account.EUR:
-                symbol = "\u20AC";;
+                symbol = "\u20AC";
                 break;
             default:
                 symbol = "$";
